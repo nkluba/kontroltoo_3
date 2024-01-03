@@ -12,14 +12,16 @@ $events = Get-WinEvent -FilterHashtable @{
 $groupedEvents = $events | Group-Object -Property EventID | Sort-Object Count -Descending
 
 function Format-Event {
-    param($event)
-    "[ $($event.EventID) ] [ $($event.Message.Split("`n")[0].Trim()) ]`n[ $($event.TimeCreated) ] [ $($event.Message.Trim()) ]"
+    param($group)
+    $output = "[ $($group.Name) ] [ Title ]`n`n"
+    foreach ($event in $group.Group | Sort-Object TimeCreated -Descending) {
+        $output += "[ $($event.TimeCreated) ] [ $($event.Message.Trim()) ]`n"
+    }
+    $output
 }
 
 $output = foreach ($group in $groupedEvents) {
-    $group.Group | Sort-Object TimeCreated -Descending | ForEach-Object { Format-Event $_ }
+    Format-Event $group
 }
 
 $output | Out-File -FilePath $resultFilePath
-
-Write-Host "Script completed successfully. Results saved to: $resultFilePath"
