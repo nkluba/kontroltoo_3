@@ -6,16 +6,14 @@ $events = Get-WinEvent -FilterHashtable @{
     LogName='System','Windows PowerShell';
     StartTime=$startTime;
     EndTime=$endTime;
-	Level = 2,3
+    Level = 2,3
 }
-
-Write-Host $events
 
 $groupedEvents = $events | Group-Object -Property EventID | Sort-Object Count -Descending
 
 function Format-Event {
     param($event)
-    "[ $($event.EventID) ] [ $($event.Message.Split("`n")[0]) ]`n[ $($event.TimeCreated) ] [ $($event.Message.Trim()) ]"
+    "[ $($event.EventID) ] [ $($event.Message.Split("`n")[0].Trim()) ]`n[ $($event.TimeCreated) ] [ $($event.Message.Trim()) ]"
 }
 
 $output = foreach ($group in $groupedEvents) {
