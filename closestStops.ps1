@@ -1,13 +1,12 @@
 Import-Module -Name Microsoft.PowerShell.Utility -Force
 
 function Get-Distance {
-    param(
+    param (
         [double]$lat1, [double]$lon1,
         [double]$lat2, [double]$lon2
     )
 
-	# earth radius
-
+    # Earth radius
     $R = 6371
     $dLat = [System.Math]::PI / 180 * ($lat2 - $lat1)
     $dLon = [System.Math]::PI / 180 * ($lon2 - $lon1)
@@ -32,13 +31,13 @@ if ($filteredStops.Count -eq 0) {
 else {
     if ($filteredStops.Count -gt 1) {
         Write-Host "Multiple bus stops found with '$busStopName' name, choose one:"
-        $index = 1
-        $filteredStops | ForEach-Object {
-            Write-Host "$index. $_.stop_area"
-            $index++
-        }
+$index = 1
+$filteredStops | ForEach-Object {
+    Write-Host "$index. $($_.stop_name), area: $($_.stop_area), stop location: $($_.stop_lat) $($_.stop_lon)"
+    $index++
+}
 
-        $choice = Read-Host "Enter the number of needed bus stop."
+        $choice = Read-Host "Enter the number of the needed bus stop."
         $selectedStop = $filteredStops[$choice - 1]
     }
     else {
@@ -46,9 +45,9 @@ else {
     }
 
     $closestStops = $stops | Where-Object {
-        ($_.stop_name -ne $selectedStop.stop_name) -and
-		(Get-Distance $selectedStop.stop_lat $selectedStop.stop_lon $_.stop_lat $_.stop_lon) -le $radius
-    }
+        $_.stop_name -ne $selectedStop.stop_name -and
+        (Get-Distance $selectedStop.stop_lat $selectedStop.stop_lon $_.stop_lat $_.stop_lon) -le $radius
+    } | Sort-Object stop_name, stop_area -Unique
 
     if ($closestStops.Count -eq 0) {
         Write-Host "No other bus stops found within the radius ($radius km) of '$busStopName'"
@@ -56,7 +55,8 @@ else {
     else {
         Write-Host "Closest bus stops within a $radius km radius of '$busStopName':"
         $closestStops | ForEach-Object {
-            Write-Host "$($_.stop_name), area: $($_.stop_area), distance: $([math]::Round((Get-Distance $selectedStop.stop_lat $selectedStop.stop_lon $_.stop_lat $_.stop_lon), 2)) km"
+            $distance = [math]::Round((Get-Distance $selectedStop.stop_lat $selectedStop.stop_lon $_.stop_lat $_.stop_lon), 2)
+            Write-Host "$($_.stop_name), area: $($_.stop_area), distance: $distance km"
         }
     }
 }
